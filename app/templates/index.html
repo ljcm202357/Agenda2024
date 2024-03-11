@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/style.css')}}">
+</head>
+<body>
+<div class="container">
+<<<<<<< HEAD
+ 
+    <h1>LISTADO DE USUARIOS</h1>
+    <table>
+
+       <tr>
+          <th>Codigo:</th>
+          <th>Nombre:</th>
+          <th>Apellido:</th>
+          <th>Email:</th>
+          <th>Direccion:</th>
+          <th>Telefono:</th>
+          <th>Usuario:</th>
+         <th>Acciones:</th>
+     </tr>
+
+      <tbody>
+        {% for usuario in personas  %}
+        <tr>
+            <td>{{ usuario[0] }}</td>
+            <td>{{ usuario[1] }}</td>
+            <td>{{ usuario[2] }}</td>
+            <td>{{ usuario[3] }}</td>
+            <td>{{ usuario[4] }}</td>
+            <td>{{ usuario[5] }}</td>
+            <td>{{ usuario[6] }}</td>
+            
+            <td>
+                <a href="{{ url_for('editar_usuario',id=usuario[0]) }}">Editar</a>
+                <a href="{{ url_for('eliminar_usuario',id=usuario[0]) }}">Eliminar</a>
+            </td>
+            
+        </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+=======
+    <h1>Lista de Usuarios</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Email</th>
+                <th>Direccion</th>
+                <th>Telefono</th>
+                <th>Usuario</th>
+                <th>Acciones</th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in personas %}
+            <tr>
+                <td>{{ usuario[0] }}</td>  
+                <td>{{ usuario[1] }}</td>  
+                <td>{{ usuario[2] }}</td>  
+                <td>{{ usuario[3] }}</td>  
+                <td>{{ usuario[4] }}</td>  
+                <td>{{ usuario[5] }}</td> 
+                <td>{{ usuario[6] }}</td> 
+                <td class="acciones">
+                <a href="{{ url_for('editar_usuario', id=usuario[0]) }}">Editar</a> 
+              | <a href="{{ url_for('eliminar_usuario', id=usuario[0]) }}">Eliminar</a></td>  
+          
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{{ url_for('registrar_usuario') }}">Agregar usuario</a>
+>>>>>>> 1e32c439200534e06cb5e18258119d7d8be5bc8a
+</div>
+
+</body>
+</html>
