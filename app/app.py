@@ -1,8 +1,16 @@
-from flask import Flask, render_template, redirect, request, url_for, flash, jsonify
+from flask import Flask, render_template, redirect, request, url_for, flash, jsonify, session
 import mysql.connector
+import bcrypt
+from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash
+import logging
 # creamos una instancia de la clase flask
 
 app = Flask(__name__)
+# Este error indica que estás intentando usar sesiones en tu aplicación Flask,
+# pero no has configurado una clave secreta (secret_key).
+# La clave secreta es necesaria para firmar las sesiones y garantizar su seguridad.
+app.secret_key = '51935349'
 
 # configurar la conexion
 db = mysql.connector.connect(
@@ -14,8 +22,74 @@ db = mysql.connector.connect(
 )
 cursor = db.cursor()
 
+# Configurar el registro
+logging.basicConfig(level=logging.DEBUG)
 
-@app.route('/')
+
+def encriptarcontra(contraencrip):
+    # generar un hash de la contraseña
+    encriptar = bcrypt.hashpw(contraencrip.encode('utf-8'), bcrypt.gensalt())
+
+    return encriptar
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+
+    if request.method == 'POST':
+        # VERIFICAR LAS CREDENCIALES DEL USUARIO
+        username = request.form.get('txtusuario')
+        password = request.form.get('txtcontrasena')
+
+        cursor = db.cursor()
+        cursor.execute(
+            "SELECT usuarioper,contraper FROM personas where usuarioper = %s", (username,))
+        usuarios = cursor.fetchone()
+
+        if usuarios and check_password_hash(usuarios[1], password):
+            session['usuario'] = username
+            print(username)
+            print(session['usuario'])
+            return redirect(url_for('principal'))
+
+        else:
+            error = 'Credenciales invalidas. por favor intentarlo de nuevo'
+            return render_template('login.html', error=error)
+
+    return render_template('login.html')
+
+
+@app.route('/logout')
+def logout():
+    # Elimina el nombre de usuario de la sesión
+    session.pop('usuario', None)
+    return redirect(url_for('login'))
+
+# NO ALMACENAR CACHE DE LA PAGINA
+
+
+@app.after_request
+def add_header(response):
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
+
+@app.route('/principal', methods=['GET', 'POST'])
+def principal():
+   # Verificar si el usuario ha iniciado sesión
+    if 'usuario' in session:
+        # Obtener el nombre de usuario de la sesión
+        nombre_usuario = session['usuario']
+        # Renderizar la plantilla de Principal.html
+        return render_template('prin.html', nombre_usuario=nombre_usuario)
+    else:
+        # Si el usuario no ha iniciado sesión, redirigirlo a la página de inicio de sesión
+        return redirect(url_for('login'))
+
+
+@app.route('/lista', methods=['GET', 'POST'])
 def lista():
 
     # Recuperar datos de la tabla Personas
@@ -37,24 +111,25 @@ def registrar_usuario():
         Telefono = request.form.get('telefono')
         Usuario = request.form.get('usuario')
         Contrasena = request.form.get('contrasena')
+        Contrasenaencriptada = generate_password_hash(Contrasena)
 
         # Verificar si el usuario y el correo electrónico ya existen en la base de datos
         cursor = db.cursor()
         cursor.execute(
-            "SELECT * FROM Personas WHERE usuarioper = %s OR emailper = %s", (Usuario, Email))
+            "SELECT * FROM personas WHERE usuarioper = %s OR emailper = %s", (Usuario, Email))
         existing_user = cursor.fetchone()
 
         if existing_user:
-            jsonify({'error': 'El usuario  o correo ya está registrado'})
-            return redirect(url_for('registrar_usuario'))
+            error = 'El usuario o correo ya está registrado.'
+            return render_template('Registrar.html', error=error)
 
     # insertar datos a la tabla personas
 
         cursor.execute("INSERT INTO Personas(nombreper,apellidoper,emailper,dirper,telper,usuarioper,contraper)VALUES(%s,%s,%s,%s,%s,%s,%s)",
-                       (Nombres, Apellidos, Email, Direccion, Telefono, Usuario, Contrasena))
+                       (Nombres, Apellidos, Email, Direccion, Telefono, Usuario, Contrasenaencriptada))
         db.commit()
         # flash('Usuario registrado correctamente', 'success')
-        return redirect(url_for('lista'))
+        return redirect(url_for('login'))
     # Redirigir a la misma página después de procesar la solicitud POST
         return redirect(url_for('registrar_usuario'))
 
@@ -111,5 +186,5 @@ def eliminar_usuario(id):
 if __name__ == '__main__':
     app.add_url_rule('/', view_func=lista)
     app.run(debug=True, port=5005)
-    app.secret_key = '28540464'
+
 # definir rutas
