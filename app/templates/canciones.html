@@ -12,55 +12,16 @@
         <nav>
             <ul>
                 <li><a href="#">Inicio</a></li>
-        <li>  <a href="{{ url_for('registrar_usuario') }}">Agregar usuario</a></li>
-        <li><a href="{{ url_for('registrar_canciones') }}">Agregar canciones</a></li>
+       
         <li> <a href="/logout">Agregar compra</a></li>
         <li> <a href="/logout">Cerrar sesión</a></li>
             </ul>
         </nav>
     </header>
 <div class="container">
-    
-    <h1>Lista de Usuarios</h1>
     <h1>Bienvenido, {{session['usuario']}} </h1>
     <p>¡Has iniciado sesión correctamente!</p>
-    
-   
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Apellido</th>
-                <th>Email</th>
-                <th>Direccion</th>
-                <th>Telefono</th>
-                <th>Usuario</th>
-                <th>Acciones</th>
-                
-            </tr>
-        </thead>
-        <tbody>
-            {% for usuario in personas %}
-            <tr>
-                <td>{{ usuario[0] }}</td>  
-                <td>{{ usuario[1] }}</td>  
-                <td>{{ usuario[2] }}</td>  
-                <td>{{ usuario[3] }}</td>  
-                <td>{{ usuario[4] }}</td>  
-                <td>{{ usuario[5] }}</td> 
-                <td>{{ usuario[6] }}</td> 
-                <td class="acciones">
-                <a href="{{ url_for('editar_usuario', id=usuario[0]) }}">Editar</a> 
-              | <a href="{{ url_for('eliminar_usuario', id=usuario[0]) }}">Eliminar</a></td>  
-          
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-  
-</div>
-  <h1>Canciones</h1>
+    <h1>Canciones</h1>
     <table>
         <thead>
             <tr>
@@ -76,7 +37,7 @@
         <tbody>
             {% for cancion in canciones %}
             <tr>
-                <td><img src="{{ cancion[7] }}" alt="Portada de la canción"></td>
+                <td><img src="data:image/jpeg;base64,{{ cancion.img }}" alt="Portada de la canción"></td>
                 <td>{{ cancion[1] }}</td>
                 <td>{{ cancion[2] }}</td>
                 <td>{{ cancion[3] }}</td>
@@ -87,6 +48,5 @@
             {% endfor %}
         </tbody>
     </table>
-
 </body>
 </html>

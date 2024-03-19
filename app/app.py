@@ -4,6 +4,7 @@ import bcrypt
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 import logging
+import base64
 # creamos una instancia de la clase flask
 
 app = Flask(__name__)
@@ -37,25 +38,32 @@ def encriptarcontra(contraencrip):
 def login():
 
     if request.method == 'POST':
-        # VERIFICAR LAS CREDENCIALES DEL USUARIO
+        # Obtener las credenciales del formulario
         username = request.form.get('txtusuario')
         password = request.form.get('txtcontrasena')
 
-        cursor = db.cursor()
-        cursor.execute(
-            "SELECT usuarioper,contraper FROM personas where usuarioper = %s", (username,))
-        usuarios = cursor.fetchone()
+        # Consultar la base de datos para obtener el usuario
+        cursor = db.cursor(dictionary=True)
+        query = "SELECT usuarioper, contraper, roles FROM personas WHERE usuarioper = %s"
+        cursor.execute(query, (username,))
+        usuario = cursor.fetchone()
 
-        if usuarios and check_password_hash(usuarios[1], password):
-            session['usuario'] = username
-            print(username)
-            print(session['usuario'])
-            return redirect(url_for('principal'))
+        if usuario and check_password_hash(usuario['contraper'], password):
+            # Autenticación exitosa, establecer las variables de sesión
+            session['usuario'] = usuario['usuarioper']
+            session['rol'] = usuario['roles']
 
+            # Redirigir según el rol del usuario
+            if usuario['roles'] == 'administrador':
+                return redirect(url_for('lista'))
+            else:
+                return redirect(url_for('mostrar_canciones'))
         else:
-            error = 'Credenciales invalidas. por favor intentarlo de nuevo'
-            return render_template('login.html', error=error)
+            # Credenciales inválidas, mostrar mensaje de error
+            print("Credenciales incorrectas. Por favor, intenta nuevamente.")
+            return render_template('login.html')
 
+    # Si la solicitud es GET, renderizar el formulario de inicio de sesión
     return render_template('login.html')
 
 
@@ -111,6 +119,7 @@ def registrar_usuario():
         Telefono = request.form.get('telefono')
         Usuario = request.form.get('usuario')
         Contrasena = request.form.get('contrasena')
+        roles = request.form.get('txtrol')
         Contrasenaencriptada = generate_password_hash(Contrasena)
 
         # Verificar si el usuario y el correo electrónico ya existen en la base de datos
@@ -120,13 +129,13 @@ def registrar_usuario():
         existing_user = cursor.fetchone()
 
         if existing_user:
-            error = 'El usuario o correo ya está registrado.'
-            return render_template('Registrar.html', error=error)
+            print("'El usuario o correo ya está registrado.")
+            return render_template('Registrar.html')
 
     # insertar datos a la tabla personas
 
-        cursor.execute("INSERT INTO Personas(nombreper,apellidoper,emailper,dirper,telper,usuarioper,contraper)VALUES(%s,%s,%s,%s,%s,%s,%s)",
-                       (Nombres, Apellidos, Email, Direccion, Telefono, Usuario, Contrasenaencriptada))
+        cursor.execute("INSERT INTO Personas(nombreper,apellidoper,emailper,dirper,telper,usuarioper,contraper,roles)VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",
+                       (Nombres, Apellidos, Email, Direccion, Telefono, Usuario, Contrasenaencriptada, roles))
         db.commit()
         # flash('Usuario registrado correctamente', 'success')
         return redirect(url_for('login'))
@@ -167,7 +176,7 @@ def editar_usuario(id):
     else:
         # Obtener los datos del usuario a editar
         cursor = db.cursor()
-        cursor.execute('SELECT * FROM personas WHERE idper = %s', (id,))
+        cursor.execute("SELECT * FROM personas WHERE idper = %s", (id,))
         data = cursor.fetchall()
         cursor.close()
         return render_template('editar.html', personas=data[0])
@@ -180,6 +189,53 @@ def eliminar_usuario(id):
     db.commit()
     cursor.close()
     return redirect(url_for('lista'))
+
+# agrgar canciones
+
+
+@app.route('/agregarcanciones', methods=['GET', 'POST'])
+def registrar_canciones():
+    if request.method == 'POST':
+        titulo = request.form.get('txttitulo')
+        artista = request.form.get('txtartista')
+        genero = request.form.get('txtgenero')
+        precio = request.form.get('txtprecio')
+        duracion = request.form.get('txtduracion')
+        alanzamiento = request.form.get('txtlanzamiento')
+        imagen = request.form.get('txtimagen')
+
+        # Definir un cursor
+        cursor = db.cursor()
+
+        try:
+            # Insertar datos en la tabla canciones
+            cursor.execute("INSERT INTO canciones(title, artist, genre, price, duration, alanzamiento, img) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                           (titulo, artista, genero, precio, duracion, alanzamiento, imagen))
+            db.commit()
+            print("Canción registrada correctamente")
+            return redirect(url_for('lista'))
+        except Exception as e:
+            print("Error al registrar la canción:", e)
+            db.rollback()  # Revertir cambios en caso de error
+            return "Error al registrar la canción. Por favor, inténtalo de nuevo."
+
+    # Si la solicitud es GET, renderizar el formulario
+    return render_template('Acanciones.html')
+
+
+def custom_b64encode(blob):
+    return base64.b64encode(blob).decode('utf-8')
+
+# Ruta para mostrar las canciones
+
+
+@app.route('/canciones')
+def mostrar_canciones():
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM canciones")
+    canciones = cursor.fetchall()
+
+    return render_template('canciones.html', canciones=canciones)
 
 
 # para ejecutar la aplicacion
