@@ -1,10 +1,11 @@
-from flask import Flask, render_template, redirect, request, url_for, flash, jsonify, session
+from flask import Flask, render_template, redirect, request, url_for, flash, jsonify, session, send_file
 import mysql.connector
 import bcrypt
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 import logging
 import base64
+import io
 # creamos una instancia de la clase flask
 
 app = Flask(__name__)
@@ -202,7 +203,9 @@ def registrar_canciones():
         precio = request.form.get('txtprecio')
         duracion = request.form.get('txtduracion')
         alanzamiento = request.form.get('txtlanzamiento')
-        imagen = request.form.get('txtimagen')
+        # Obtener la imagen del formulario
+        imagen = request.files['txtimagen']
+        imagen_blob = imagen.read()  # Leer los datos de la imagen
 
         # Definir un cursor
         cursor = db.cursor()
@@ -210,7 +213,7 @@ def registrar_canciones():
         try:
             # Insertar datos en la tabla canciones
             cursor.execute("INSERT INTO canciones(title, artist, genre, price, duration, alanzamiento, img) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                           (titulo, artista, genero, precio, duracion, alanzamiento, imagen))
+                           (titulo, artista, genero, precio, duracion, alanzamiento, imagen_blob))
             db.commit()
             print("Canción registrada correctamente")
             return redirect(url_for('lista'))
@@ -228,14 +231,54 @@ def custom_b64encode(blob):
 
 # Ruta para mostrar las canciones
 
+# Ruta para mostrar una imagen específica por su ID
+
+
+@app.route('/mostrar/<int:id>')
+def mostrar(id):
+
+    cursor = db.cursor()
+
+    cursor.execute(
+        "SELECT  img FROM canciones WHERE song_id = %s", (id,))
+    data = cursor.fetchone()
+
+    if data:
+
+        imagen = base64.b64encode(data[0]).decode('utf-8')
+        return render_template('canciones.html', imagen=imagen)
+    else:
+        return print("Imagen no encontrada")
+
 
 @app.route('/canciones')
 def mostrar_canciones():
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM canciones")
+
+    cursor.execute(
+        "SELECT title, artist, genre, price, duration, alanzamiento, img FROM canciones")
     canciones = cursor.fetchall()
 
-    return render_template('canciones.html', canciones=canciones)
+    if canciones:
+        # Crear una lista para almacenar los datos de las canciones
+        canciones_data = []
+        for cancion in canciones:
+            # Convertir la imagen a base64
+            imagen = base64.b64encode(cancion[6]).decode('utf-8')
+            # Agregar los datos de la canción junto con la imagen a la lista de canciones
+            canciones_data.append({
+                'titulo': cancion[0],
+                'artista': cancion[1],
+                'genero': cancion[2],
+                'precio': cancion[3],
+                'duracion': cancion[4],
+                'lanzamiento': cancion[5],
+                'imagen': imagen
+            })
+        return render_template('canciones.html', canciones=canciones_data)
+    else:
+
+        return "No se encontraron canciones"
 
 
 # para ejecutar la aplicacion

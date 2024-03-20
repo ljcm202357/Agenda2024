@@ -8,44 +8,31 @@
 </head>
 <body>
 <div class="container">
-    <h2>Registro de Canción</h2>
-    <form action="/agregarcanciones" method="post" >
-      <div class="form-group">
-        <label for="titulo">Título de la Canción:</label>
-        <input type="text" id="titulo" name="txttitulo" required>
-      </div>
-      <div class="form-group">
-        <label for="artista">Artista:</label>
-        <input type="text" id="artista" name="txtartista" required>
-      </div>
-      <div class="form-group">
-        <label for="genero">Género:</label>
-        <select id="genero" name="txtgenero" required>
-          <option value="pop">Pop</option>
-          <option value="rock">Rock</option>
-          <option value="hiphop">Hip Hop</option>
-          <option value="electronic">Electrónica</option>
-          <!-- Agrega más opciones según sea necesario -->
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="precio">Precio:</label>
-        <input type="number" id="precio" name="txtprecio" required>
-      </div>
-      <div class="form-group">
-        <label for="duracion">Duración (minutos):</label>
-        <input type="number" id="duracion" name="txtduracion" required>
-      </div>
-      <div class="form-group">
-        <label for="lanzamiento">Año de Lanzamiento:</label>
-        <input type="date" id="lanzamiento" name="txtlanzamiento" pattern="\d{1,2}/\d{1,2}/\d{4}" placeholder="dd/mm/aaaa" required>
-      </div>
-      <div class="form-group">
-        <label for="imagen">Imagen de la Canción:</label>
-        <input type="file" id="imagen" name="txtimagen">
-      </div>
-      <button type="submit">Registrar Canción</button>
-    </form>
+  <h1>Agregar Canciones</h1>
+  <form action="/agregarcanciones" method="post" enctype="multipart/form-data">
+      <label for="txttitulo">Título:</label><br>
+      <input type="text" id="txttitulo" name="txttitulo"><br>
+      
+      <label for="txtartista">Artista:</label><br>
+      <input type="text" id="txtartista" name="txtartista"><br>
+      
+      <label for="txtgenero">Género:</label><br>
+      <input type="text" id="txtgenero" name="txtgenero"><br>
+      
+      <label for="txtprecio">Precio:</label><br>
+      <input type="text" id="txtprecio" name="txtprecio"><br>
+      
+      <label for="txtduracion">Duración:</label><br>
+      <input type="text" id="txtduracion" name="txtduracion"><br>
+      
+      <label for="txtlanzamiento">Lanzamiento:</label><br>
+      <input type="date" id="txtlanzamiento" name="txtlanzamiento"><br>
+      
+      <label for="txtimagen">Imagen:</label><br>
+      <input type="file" id="txtimagen" name="txtimagen"><br><br>
+      
+      <input type="submit" value="Agregar Canción">
+  </form>
     </div>
   </body>
   </html>
