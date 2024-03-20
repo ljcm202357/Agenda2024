@@ -32,6 +32,7 @@
                 <th>Precio</th>
                 <th>Duración</th>
                 <th>Año de Lanzamiento</th>
+                <th>Acción</th>
             </tr>
         </thead>
         <tbody>
@@ -56,6 +57,12 @@
                 <td>{{ cancion.precio }}</td>
                 <td>{{ cancion.duracion }}</td>
                 <td>{{ cancion.lanzamiento }}</td>
+                <td>
+                    <form action="/agregar_al_carrito" method="post">
+                        <input type="hidden" name="id_cancion" value="{{ cancion.id }}">
+                        <button type="submit">Agregar al carrito</button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

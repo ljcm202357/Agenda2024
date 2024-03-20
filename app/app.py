@@ -281,6 +281,22 @@ def mostrar_canciones():
         return "No se encontraron canciones"
 
 
+@app.route('/agregar_al_carrito', methods=['POST'])
+def agregar_al_carrito():
+    id_cancion = request.form.get('id_cancion')
+    # Obtener información sobre la canción desde la base de datos, por ejemplo:
+    # cancion = obtener_cancion_por_id(id_cancion)
+    # cancion_precio = cancion.precio
+    # Agregar el precio de la canción al carrito en la sesión del usuario
+    # Si no tienes un carrito en la sesión, crea uno
+    if 'carrito' not in session:
+        session['carrito'] = []
+    # Agregar la canción al carrito
+    session['carrito'].append(id_cancion)
+    # Redirigir de vuelta a la página de canciones
+    return redirect(url_for('canciones'))
+
+
 # para ejecutar la aplicacion
 if __name__ == '__main__':
     app.add_url_rule('/', view_func=lista)
